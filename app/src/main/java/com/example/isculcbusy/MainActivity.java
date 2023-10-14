@@ -1,6 +1,8 @@
 package com.example.isculcbusy;
 
 import android.Manifest;
+import android.app.AlertDialog;
+import android.content.pm.PackageManager;
 import android.os.Bundle;
 
 import com.google.android.material.bottomnavigation.BottomNavigationView;
@@ -8,6 +10,7 @@ import com.google.android.material.bottomnavigation.BottomNavigationView;
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.app.ActivityCompat;
 import androidx.navigation.NavController;
 import androidx.navigation.Navigation;
 import androidx.navigation.ui.AppBarConfiguration;
@@ -19,20 +22,17 @@ public class MainActivity extends AppCompatActivity {
 
     private ActivityMainBinding binding;
 
-    private ActivityResultLauncher<String[]> requestPermissionLauncher =
+    private ActivityResultLauncher<String[]> locationPermissionRequest =
             registerForActivityResult(new ActivityResultContracts.RequestMultiplePermissions(),
                     result -> {
-                        Boolean fineLocationGranted = false;
-                        if (android.Manifest.permission.ACCESS_FINE_LOCATION != null) {
-                            fineLocationGranted = true;
-                        }
-                        Boolean coarseLocationGranted = false;
-                        if (Manifest.permission.ACCESS_COARSE_LOCATION != null) {
-                            coarseLocationGranted = true;
-                        }
+                        Boolean fineLocationGranted = result.containsKey(Manifest.permission.ACCESS_FINE_LOCATION)
+                                && result.get(Manifest.permission.ACCESS_FINE_LOCATION);
+                        Boolean coarseLocationGranted = result.containsKey(Manifest.permission.ACCESS_COARSE_LOCATION)
+                                && result.get(Manifest.permission.ACCESS_COARSE_LOCATION);
+
                         if (fineLocationGranted && coarseLocationGranted) {
                             // Precise location access granted.
-                        } else if (coarseLocationGranted != null && coarseLocationGranted) {
+                        } else if (coarseLocationGranted) {
                             // Only approximate location access granted.
                         } else {
                             // No location access granted.
@@ -40,16 +40,15 @@ public class MainActivity extends AppCompatActivity {
                     }
             );
 
-    public void launch(ActivityResultLauncher<String[]> requestPermissionLauncher) {
-
-    }
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
         binding = ActivityMainBinding.inflate(getLayoutInflater());
         setContentView(binding.getRoot());
+
+        locationPermissionRequest.launch(new String[] {
+                Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION });
 
         BottomNavigationView navView = findViewById(R.id.nav_view);
         // Passing each menu ID as a set of Ids because each
@@ -60,6 +59,7 @@ public class MainActivity extends AppCompatActivity {
         NavController navController = Navigation.findNavController(this, R.id.nav_host_fragment_activity_main);
         NavigationUI.setupActionBarWithNavController(this, navController, appBarConfiguration);
         NavigationUI.setupWithNavController(binding.navView, navController);
+
     }
 
 
